@@ -1,0 +1,10 @@
+cmake_minimum_required(VERSION 2.8.9)
+project( sample1)
+find_package( OpenCV REQUIRED )
+include_directories( ${OpenCV_INCLUDE_DIRS} )
+include_directories (/usr/include/tesseract)
+include_directories (/opt/local/include)
+link_directories (/usr/local/lib)
+add_executable( sample1 sample1.cpp )
+target_link_libraries(sample1 ${OpenCV_LIBS} lept tesseract)
+
