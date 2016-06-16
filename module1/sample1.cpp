@@ -25,6 +25,7 @@ using namespace cv;
 RNG rng(12345);
 void sort(vector<Rect> &boundRectCrop);
 int count_crop = 0;
+int count_temp = 0;
 int main(int argc, char* argv[])
 {
 	char *outText;
@@ -273,18 +274,28 @@ int main(int argc, char* argv[])
 				const_y2 = y2;
 
 			std::cout<<"const_y1: "<<const_y1<<" | const_y2: "<<const_y2<<std::endl;
-
+cout<<"woking 1"<<endl;
 			//rectangle(imgThresh,Point(x1-20, const_y1-20),Point(x2+20, const_y2+20), Scalar(0,0,0), 2, 8, 0 );
-
-			Rect roi(x1-20, const_y1-20,(x2+20)-(x1-20),(const_y2+20)-(const_y1-20));
-
+			//if((x1-20) >= 0 && (const_y1-20) >=0  && ((x2+20)-(x1-20)) <= imgThresh.width && ((const_y2+20)-(const_y1-20)) << imgThresh.height){
+			Rect roi(x1-5, const_y1-5,(x2+5)-(x1-5),(const_y2+5)-(const_y1-5));
+cout<<"woking 2"<<endl;
+//			Mat imgThreshClone = imgThresh.clone();
+cout<<"roi.height: "<< roi.height <<" | "<< imgThresh.rows<<endl;
+cout<<"roi.width: "<< roi.width <<" | "<< imgThresh.cols<<endl;
+//			if((roi.height <= imgThresh.rows) && (roi.width <= imgThresh.cols) ){
+if(roi.x >= 0 && roi.y >= 0 && roi.width + roi.x < imgThresh.cols && roi.height + roi.y < imgThresh.rows){
 			Mat crop_img = imgThresh(roi);
+cout<<"woking 3"<<endl;
 			sprintf(imageToSave,"%s//face%d.jpg","..",letter_count);
+cout<<"woking 4"<<endl;
 			imwrite(imageToSave, crop_img);
+cout<<"woking 5"<<endl;
 			cv::imshow("crop", crop_img);
+cout<<"woking 6"<<endl;
 
 			printf("word: '%s';  \tconf: %.2f; BoundingBox: %d,%d,%d,%d;\n",
 					word, conf, x1, y1, x2, y2);
+			}
 			delete[] word;
 		} while (ri->Next(level));
 		conf_avg = conf_avg/letter_count;
@@ -299,7 +310,11 @@ int main(int argc, char* argv[])
 	{
 		Scalar color = Scalar(255,123,0);
 		drawContours(drawing, contours_poly, i, color, 1, 8, vector<Vec4i>(), 0, Point() );
-		if((const_y1-20) <= boundRect[i].y && (const_y2+20) >= (boundRect[i].y + boundRect[i].height) && (boundRect[i].height >= (((const_y2)- (const_y1))/3))) {
+
+		cout<<" width is: "<<boundRect[i].width <<" |  height is : "<<(boundRect[i].height + boundRect[i].height/2)<<endl;
+                if(boundRect[i].width < (boundRect[i].height + boundRect[i].height/2)){
+
+		if(/*(const_y1-20) <= boundRect[i].y && (const_y2+20) >= (boundRect[i].y + boundRect[i].height) &&*/ (boundRect[i].height >= (((const_y2)- (const_y1))/5 + ((const_y2)- (const_y1))/6))) {
 
 			cout<<"bheight: "<<boundRect[i].height << " y2-y1: "<<(const_y2)- (const_y1)<<endl;
 			rectangle(imgThreshCopy, boundRect[i].tl(), boundRect[i].br(), color, 2, 8, 0 );
@@ -319,6 +334,8 @@ int main(int argc, char* argv[])
 			//cv::imshow("crop_text", crop_img_text);
 
 		}
+	}
+
 		//       circle( drawing, center[i], (int)radius[i], color, 2, 8, 0 );
 	}
 
@@ -331,9 +348,18 @@ int main(int argc, char* argv[])
 		Rect roi_crop(boundRectCrop[i].x, boundRectCrop[i].y,boundRectCrop[i].width,boundRectCrop[i].height);
 
 		Mat crop_img_text = imgThresh(roi_crop);
-		sprintf(imageToSave_crop,"%s//crop%d.jpg","../crop/",i);
+double nonZero = countNonZero(crop_img_text);
+cout<<"NonZero: "<<nonZero<<endl;
+double nPixels = (crop_img_text.cols*crop_img_text.channels())*crop_img_text.rows;
+cout<<"Total: "<<nPixels<<endl;
+cout<<"White Pixels: "<<(nonZero/nPixels)<<endl;
+
+		if((nonZero/nPixels)*100 < 90){
+		sprintf(imageToSave_crop,"%s//crop%d.jpg","../crop/",count_temp);
 		imwrite(imageToSave_crop, crop_img_text);
 		cv::imshow("crop_text", crop_img_text);
+		count_temp +=1; 
+		}
 
 	}
 

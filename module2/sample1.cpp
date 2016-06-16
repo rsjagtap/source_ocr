@@ -6,6 +6,10 @@
 #include <vector>
 #include <opencv2/highgui/highgui.hpp>
 #include "opencv2/imgproc/imgproc.hpp"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
 //#include "opencv2/nonfree/features2d.hpp"
 using namespace std;
 using namespace cv;
@@ -28,14 +32,19 @@ int main( int argc, char** argv )
 		//scene_plate = imread(argv[1], CV_LOAD_IMAGE_COLOR );
 		read_image(scene_plate.cols, scene_plate.rows, (char*)scene_plate.ptr());
 	}
-	lpr.erase(std::remove(lpr.begin(), lpr.end(), '\n'), lpr.end());
-	lpr.erase(std::remove(lpr.begin(), lpr.end(), ' '), lpr.end());
-	cout<<lpr<<endl;
+//	lpr.erase(std::remove(lpr.begin(), lpr.end(), '\n'), lpr.end());
+//	lpr.erase(std::remove(lpr.begin(), lpr.end(), ' '), lpr.end());
+	cout<<"Length: "<<lpr.length()<<"\t";
+        if(lpr.length() == 7 || lpr.length() ==10){
+	cout<<"\t\tLicense Plate No: "<<lpr<<endl;
+	}
+	else{
+	cout<<"License Plate not detected"<<endl;
+	}
 }
 
 
 void read_image(int width, int height, char *image)
-
 {
 	cv::Mat Image(height, width, CV_8UC3, image);
 	// you may need to define the area of interest, where the test is found
@@ -58,8 +67,10 @@ void read_image(int width, int height, char *image)
 //	tess_api->SetVariable("tessedit_char_whitelist", /*"ABCDEFGHIJKLMNOPQRSTUVWXYZ"*/"0123456789");
 //	if(count_letters>=12  && count_letters < 18)
 //	tess_api->SetVariable("tessedit_char_whitelist", "ABCDEFGHIJKLMNOPQRSTUVWXYZ"/*0123456789X"*/);
-//	if(count_letters>=18)
+//	if(count_letters<10)
         tess_api->SetVariable("tessedit_char_whitelist", "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
+//	if(count_letters>14)
+//	tess_api->SetVariable("tessedit_char_whitelist", /*"ABCDEFGHIJKLMNOPQRSTUVWXYZ"*/"0123456789");
 //	else
 //	tess_api->SetVariable("tessedit_char_whitelist", "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789X");
 
@@ -80,19 +91,33 @@ void read_image(int width, int height, char *image)
 	tess_api->Recognize(0);
 	//char* out =tess_api->GetUTF8Text();
 	string temp = tess_api->GetUTF8Text();
+	
+	temp.erase(std::remove(temp.begin(), temp.end(), '\n'), temp.end());
+        temp.erase(std::remove(temp.begin(), temp.end(), ' '), temp.end());
 	confidence = tess_api->MeanTextConf();
 	//cout<<"OCR output:"<< out<< "  with confidence "<<confidence<<endl;
 	//lpr << out; 
 	//cout<<temp.length()<<endl;
 
-	if(temp.length() <= 5){
-		lpr +=temp;
+//	if(temp.length() <= 5){
+//		lpr +=temp;
+//		if( temp.length() == 1 || temp.length() == 2 || temp.length() == 5 || temp.length() == 6 && isalpha(temp[0])){
+		lpr.append(temp);
 		count_letters +=temp.length();
-		cout<<count_letters<<" | "<<lpr<<endl;
-	}
-	else{
-		count_non_letters +=temp.length();
-	}
+//		}
+//		else if( temp.length() == 3 || temp.length() == 4 || temp.length() == 7 || temp.length() == 8 || temp.length() == 9 || temp.length() == 10 && isdigit(temp[0])){
+//		lpr.append(temp);
+//                count_letters +=temp.length();
+//		}
+//		else{
+//		cout<<"Not a valid License Plate"<<endl;	
+//		exit(0);
+//		}
+		cout<<count_letters<<"\t|\t"<<lpr<<endl;
+//	}
+//	else{
+//		count_non_letters +=temp.length();
+//	}
 	//lpr.append(out);
 	//cout<<lpr;
 
