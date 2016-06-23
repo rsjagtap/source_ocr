@@ -1,50 +1,49 @@
-#include <stdio.h>
-#include <math.h>
-#include "opencv/cv.h"
-#include "opencv/highgui.h"
+//#include <stdio.h>
+//#include <math.h>
+//#include "opencv/cv.h"
+//#include "opencv/highgui.h"
+//
+//#include "opencv2/core/core.hpp"
+//#include "opencv2/highgui/highgui.hpp"
+//#include "opencv2/imgproc/imgproc.hpp"
+//#include "opencv2/objdetect/objdetect.hpp"
+//
+//#include <iostream>
+//#include <vector>
+//#include <fstream>
+//#include <sstream>
+//#include <ctime>
+//
+//#include <baseapi.h>
+//
+//#include <tesseract/baseapi.h>
+//#include <leptonica/allheaders.h>
+//
+//using namespace std;
+//using namespace cv;
+//
+//RNG rng(12345);
+////void sort(vector<Rect> &boundRectCrop);
+//int count_crop = 0;
+//int count_temp = 0;
+////int main(int argc, char* argv[])
+////{
+#include "ExtractSingleText.h"
 
-#include "opencv2/core/core.hpp"
-#include "opencv2/highgui/highgui.hpp"
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/objdetect/objdetect.hpp"
-
-#include <iostream>
-#include <vector>
-#include <fstream>
-#include <sstream>
-#include <ctime>
-
-#include <baseapi.h>
-
-#include <tesseract/baseapi.h>
-#include <leptonica/allheaders.h>
-
-using namespace std;
-using namespace cv;
-
-RNG rng(12345);
-void sort(vector<Rect> &boundRectCrop);
-int count_crop = 0;
-int count_temp = 0;
-int main(int argc, char* argv[])
-{
-	char *outText;
-	char imageToSave[50];
-	char imageToSave_crop[50];
+void ExtractSingleText::createFolder4CroppedText(){
 
 	string folderName = "crop";
 	string folderRemoveCommand = "rm -rf ../" + folderName;
 	system(folderRemoveCommand.c_str());	//Remove the folder if already present
 	string folderCreateCommand = "mkdir ../" + folderName;
 	system(folderCreateCommand.c_str());	//Create the folder if not present.
+}
 
 
 
 
 
-
-
-	tesseract::TessBaseAPI *api = new tesseract::TessBaseAPI();
+void ExtractSingleText::initilizeTesseract(tesseract::TessBaseAPI* api){
 	api->SetVariable("tessedit_char_whitelist", "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
 	api->SetVariable("classify_font_name", "Arial.ttf");
 
@@ -102,7 +101,7 @@ int main(int argc, char* argv[])
 
 	//api->SetVariable("segment_penalty_garbage", "0");
 	//api->SetVariable("segment_penalty_dict_nonword", "0");
-	//api->SetVariable("segment_penalty_dict_frequent_word", "0");
+	//api->SetVariable("segment_penalty_dict_ExtractSingleText::frequent_word", "0");
 	//api->SetVariable("segment_penalty_dict_case_ok", "0");
 	//api->SetVariable("segment_penalty_dict_case_bad", "0");
 	// api->SetPageSegMode(static_cast<tesseract::PageSegMode>(7));
@@ -121,9 +120,15 @@ int main(int argc, char* argv[])
 	//
 	// api->SetPageSegMode(static_cast<tesseract::PageSegMode>(7));
 	// api->SetOutputName("out");
+}
 
+
+void ExtractSingleText::binarizeLP(string inpImage, Mat& binaryImage, Mat& grayImage , Mat& threholdImage){
 	Mat gray, imgThresh;
-	Mat img_src = imread(argv[1]);
+	Mat img_src = imread(inpImage);
+
+        //resize(img_src, img_src,Size(img_src.size().width*35, img_src.size().height*35));
+	//resize(img_src, img_src,Size(4500, 1777),0,0,CV_INTER_LINEAR);
 	float conf = 0;
 	float conf_avg = 0;
 	//do{
@@ -155,6 +160,11 @@ int main(int argc, char* argv[])
 		cv::erode(imgThreshCopy, imgThreshCopy, structuringElement5x5);
 	}
 
+	binaryImage = imgThreshCopy.clone();
+	grayImage = gray.clone();
+	threholdImage = imgThresh.clone();
+
+}
 
 
 
@@ -170,10 +180,11 @@ int main(int argc, char* argv[])
 
 
 
-
+void ExtractSingleText::findContours(Mat& binaryImage, std::vector<std::vector<cv::Point> > &contours){
 	//            cv::Mat imgThreshCopy = imgThresh.clone();
 
-	std::vector<std::vector<cv::Point> > contours;
+	Mat imgThreshCopy = binaryImage.clone();
+	//std::vector<std::vector<cv::Point> > contours;
 
 	//cv::findContours(imgThreshCopy, contours, cv::RETR_EXTERNAL,CV_CHAIN_APPROX_TC89_KCOS, Point(0, 0));
 	cv::findContours(imgThreshCopy, contours, /*cv::RETR_CCOMP CV_RETR_TREE*/ CV_RETR_LIST , cv::CHAIN_APPROX_SIMPLE);
@@ -193,7 +204,9 @@ int main(int argc, char* argv[])
 		minEnclosingCircle( (Mat)contours_poly[i], center[i], radius[i] );
 	}
 
+	binaryImage = imgThreshCopy.clone();
 
+}
 	//  /// Draw polygonal contour + bonding rects + circles
 	//  Mat drawing = Mat::zeros(imgThreshCopy.size(), CV_8UC3 );
 	//  for( int i = 0; i< contours.size(); i++ )
@@ -224,7 +237,10 @@ int main(int argc, char* argv[])
 	////    Pix *image = pixRead("../../helloworld.jpg");
 	//imgThresh = imgThreshCopy.clone();
 
+void ExtractSingleText::recognizeTextInImg(tesseract::TessBaseAPI* api, Mat& binaryImage, Mat& grayImage, char *outText){
 
+	Mat imgThreshCopy = binaryImage.clone();
+	Mat gray = grayImage.clone();
 	api->TesseractRect(imgThreshCopy.data, 1, imgThreshCopy.step1(), 0, 0, imgThreshCopy.cols, imgThreshCopy.rows);
 
 
@@ -234,7 +250,7 @@ int main(int argc, char* argv[])
 		for(int j=0; j<imgThreshCopy.cols; j++) 
 			pixSetPixel(image, j,i, (l_uint32) gray.at<uchar>(i,j));
 
-	api->SetPageSegMode(static_cast<tesseract::PageSegMode>(atoi(argv[2])));
+	api->SetPageSegMode(static_cast<tesseract::PageSegMode>(6));
 	api->SetOutputName("out");
 
 
@@ -247,12 +263,16 @@ int main(int argc, char* argv[])
 	// Get OCR result
 	outText = api->GetUTF8Text();
 	printf("OCR output:\n%s", outText);
+}
 
+
+void ExtractSingleText::cropTextWithContourPoints(tesseract::TessBaseAPI* api, float& conf , float& conf_avg, Mat& threholdImage, char* imageToSave, int& const_y1, int& const_y2, int& letter_count){
 	//float conf = 0;
 	//float conf_avg = 0;
-	int letter_count = 0;
-	int const_y1 = 0;
-	int const_y2 = 0;
+	//int letter_count = 0;
+	//int const_y1 = 0;
+	//int const_y2 = 0;
+	Mat imgThresh =  threholdImage.clone();
 	// To crop text with counter points
 
 	tesseract::ResultIterator* ri = api->GetIterator();
@@ -272,7 +292,6 @@ int main(int argc, char* argv[])
 
 			if(const_y2 < y2)
 				const_y2 = y2;
-
 
 			std::cout<<"const_y1: "<<const_y1<<" | const_y2: "<<const_y2<<std::endl;
 cout<<"woking 1"<<endl;
@@ -302,11 +321,42 @@ cout<<"woking 6"<<endl;
 		conf_avg = conf_avg/letter_count;
 		std::cout<<"avg conf is: "<<conf_avg<<std::endl;
 	}
+}
+
+void ExtractSingleText::drawRectOverSingleText(Mat& binaryImage, std::vector<std::vector<cv::Point> > &contours,int& const_y1,int& const_y2,int& letter_count, int& count_crop, Mat& drawing, vector<vector<Point> > &contours_poly, vector<Rect> &boundRect, vector<Rect> &boundRectCrop, vector<Point2f> &center, vector<float> &radius){
 
 
-
+	Mat imgThreshCopy = binaryImage.clone();
 	/// Draw polygonal contour + bonding rects + circles
-	Mat drawing = Mat::zeros(imgThreshCopy.size(), CV_8UC3 );
+	drawing = Mat::zeros(imgThreshCopy.size(), CV_8UC3 );
+
+
+//for( int i = 0; i < contours.size(); i++ )
+//{
+//cout<<" boundRect[i]"<< boundRect[i];
+//}
+
+
+
+//	vector<vector<Point> > contours_poly( contours.size() );
+//	vector<Rect> boundRect( contours.size() );
+//	vector<Rect> boundRectCrop(contours.size());
+//	vector<Point2f>center( contours.size() );
+//	vector<float>radius( contours.size() );
+	
+
+	for( int i = 0; i < contours.size(); i++ )
+	{ approxPolyDP( Mat(contours[i]), contours_poly[i], 3, true );
+		boundRect[i] = boundingRect( Mat(contours_poly[i]) );
+		boundRectCrop[i] = boundingRect( Mat(contours_poly[i]) );
+		minEnclosingCircle( (Mat)contours_poly[i], center[i], radius[i] );
+	}
+
+
+
+
+
+
 	for( int i = 0; i< contours.size(); i++ )
 	{
 		Scalar color = Scalar(255,123,0);
@@ -314,10 +364,8 @@ cout<<"woking 6"<<endl;
 
 		cout<<" width is: "<<boundRect[i].width <<" |  height is : "<<(boundRect[i].height + boundRect[i].height/2)<<endl;
                 if(boundRect[i].width < (boundRect[i].height + boundRect[i].height/2)){
-		cout<<"height 1 is"<<(((const_y2)- (const_y1))/2 * 6/*+ ((const_y2)- (const_y1))/2*/)<<endl;
-		cout<<"height 2 is"<<boundRect[i].height<<endl;
 
-		if(/*(const_y1-20) >= 0 && (const_y2+20) <= drawing.size().height &&*/ (boundRect[i].height >= (((const_y2)- (const_y1))/5 + ((const_y2)- (const_y1))/6))) {
+		if(/*(const_y1-20) <= boundRect[i].y && (const_y2+20) >= (boundRect[i].y + boundRect[i].height) &&*/ (boundRect[i].height >= (((const_y2)- (const_y1))/5 + ((const_y2)- (const_y1))/6))) {
 
 			cout<<"bheight: "<<boundRect[i].height << " y2-y1: "<<(const_y2)- (const_y1)<<endl;
 			rectangle(imgThreshCopy, boundRect[i].tl(), boundRect[i].br(), color, 2, 8, 0 );
@@ -341,27 +389,43 @@ cout<<"woking 6"<<endl;
 
 		//       circle( drawing, center[i], (int)radius[i], color, 2, 8, 0 );
 	}
+}
+
+// sort
+//sort(boundRectCrop);
+
+void ExtractSingleText::cropRectOverSingleText(int& count_crop, Mat& threholdImage, Mat& binaryImage, int& count_temp, Mat& drawing, char* imageToSave_crop, std::vector<std::vector<cv::Point> > &contours, vector<Rect> &boundRectCrop){
+
+	Mat imgThresh = threholdImage.clone();
+	Mat imgThreshCopy = binaryImage.clone();
+
+//	vector<vector<Point> > contours_poly( contours.size() );
+//	vector<Rect> boundRectCrop(contours.size());
+//
+//	for( int i = 0; i < contours.size(); i++ )
+//	{
+//		boundRectCrop[i] = boundingRect( Mat(contours_poly[i]) );
+//	}
 
 
-	sort(boundRectCrop);
 
-	int minboundRectCropHeight = 0;
-	for( int i = 0; i< count_crop; i++ ){
-	if(minboundRectCropHeight < boundRectCrop[i].height)
-		minboundRectCropHeight = boundRectCrop[i].height;
-	}
-	
-	cout<<"maximum height is: "<< minboundRectCropHeight<<endl;
+        int minboundRectCropHeight = 0;
+        for( int i = 0; i< count_crop; i++ ){
+        if(minboundRectCropHeight < boundRectCrop[i].height)
+                minboundRectCropHeight = boundRectCrop[i].height;
+        }
+
+        cout<<"maximum height is: "<< minboundRectCropHeight<<endl;
 
 
 
 
 	cout<<endl<<endl;
+
 	for( int i = 0; i< count_crop; i++ )
 	{
 		cout<<"p1: "<<boundRectCrop[i].tl() << " p2: "<<boundRectCrop[i].br()<<endl;
 		Rect roi_crop(boundRectCrop[i].x, boundRectCrop[i].y,boundRectCrop[i].width,boundRectCrop[i].height);
-		cout<<" cropped height is: "<<boundRectCrop[i].height<<endl;
 
 		Mat crop_img_text = imgThresh(roi_crop);
 double nonZero = countNonZero(crop_img_text);
@@ -395,7 +459,7 @@ cout<<"White Pixels: "<<(nonZero/nPixels)<<endl;
 	//}while(conf_avg < 90);
 
 	cv::imshow("rect", imgThresh);
-	waitKey(0);
+	//waitKey(0);
 
 	// Destroy used object and release memory
 	//    api->End();
@@ -407,7 +471,16 @@ cout<<"White Pixels: "<<(nonZero/nPixels)<<endl;
 
 
 
-void sort(vector<Rect> &boundRectCrop){
+void ExtractSingleText::sort(int& count_crop, std::vector<std::vector<cv::Point> > &contours, vector<Rect> &boundRectCrop){
+
+//	vector<vector<Point> > contours_poly( contours.size() );
+//	vector<Rect> boundRectCrop(contours.size());
+//
+//	for( int i = 0; i < contours.size(); i++ )
+//	{
+//		boundRectCrop[i] = boundingRect( Mat(contours_poly[i]) );
+//	}
+
 
 
 	for(int i = 0; i< count_crop; i++){
