@@ -22,10 +22,9 @@
 //int count_non_letters = 0;
 #include "RecognizeLP.h"
 
+
 RecognizeLP::RecognizeLP(){
 
-
-	lpFile.open("../lpNumbers.txt", ios::app);
 	count_non_letters = 0;
 
 	lpr = "";
@@ -96,7 +95,7 @@ void RecognizeLP::captrureLP(VideoCapture& cap){
 //}
 
 
-void RecognizeLP::read_image(int width, int height, char *image)
+void RecognizeLP::read_image(int width, int height, char *image, Mat& scene_plate, string& lpr,int& count_letters)
 {
 	cv::Mat Image(height, width, CV_8UC3, image);
 	// you may need to define the area of interest, where the test is found
@@ -111,7 +110,6 @@ void RecognizeLP::read_image(int width, int height, char *image)
 		cout<<"Could not initialize tesseract.\n";
 		exit(1);
 	}
-	tess_api->SetVariable("classify_font_name", /*"Arial.ttf"*/"Droid Sans Fallback.tiff");
 	//tess_api->SetVariable("tessedit_char_whitelist", "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz012345789");
 	//tess_api->SetVariable("tessedit_char_whitelist", "0123456789");
 	if(count_letters < 2)
@@ -149,7 +147,7 @@ void RecognizeLP::read_image(int width, int height, char *image)
 	temp.erase(std::remove(temp.begin(), temp.end(), '\n'), temp.end());
 	temp.erase(std::remove(temp.begin(), temp.end(), ' '), temp.end());
 	confidence = tess_api->MeanTextConf();
-	//cout<<"OCR output:"<< out<< "  with confidence "<<confidence<<endl;
+//	cout<<"OCR output:"<< temp<< "  with confidence "<<confidence<<endl;
 	//lpr << out; 
 	//cout<<temp.length()<<endl;
 
@@ -158,19 +156,18 @@ void RecognizeLP::read_image(int width, int height, char *image)
 	//		if( temp.length() == 1 || temp.length() == 2 || temp.length() == 5 || temp.length() == 6 && isalpha(temp[0])){
 	//	if(temp.length() == 1)
 	lpr.append(temp);
-	cout<<"test---"<<lpr<<endl;
 	count_letters +=temp.length();
-	//temp = "";
 	//		}
 	//		else if( temp.length() == 3 || temp.length() == 4 || temp.length() == 7 || temp.length() == 8 || temp.length() == 9 || temp.length() == 10 && isdigit(temp[0])){
 	//		lpr.append(temp);
 	//                count_letters +=temp.length();
-	//		}copy constructor
+	//		}
 	//		else{
 	//		cout<<"Not a valid License Plate"<<endl;	
 	//		exit(0);
 	//		}
 	cout<<count_letters - 1<<"\t|\t"<<lpr<<endl;
+	temp = "";
 	//	}
 	//	else{
 	//		count_non_letters +=temp.length();
@@ -185,19 +182,19 @@ void RecognizeLP::read_image(int width, int height, char *image)
 
 
 
-void RecognizeLP::readNRecognize(VideoCapture& cap){
+void RecognizeLP::readNRecognize(VideoCapture& cap, Mat& scene_plate, string& lpr,int& count_letters, ofstream& lpFile){
 	cout << "OCR: starts" << endl;
-	lpr = "";
 	while(cap.read(scene_plate)){
 
 		//cap.read(scene_plate);
 		//  cout << "OCR: starts" << endl;
 		//scene_plate = imread(argv[1], CV_LOAD_IMAGE_COLOR );
-		read_image(scene_plate.cols, scene_plate.rows, (char*)scene_plate.ptr());
+		read_image(scene_plate.cols, scene_plate.rows, (char*)scene_plate.ptr(),scene_plate,lpr,count_letters);
 	}
 	//      lpr.erase(std::remove(lpr.begin(), lpr.end(), '\n'), lpr.end());
 	//      lpr.erase(std::remove(lpr.begin(), lpr.end(), ' '), lpr.end());
 	cout<<endl<<endl;
+	lpFile.open("../lpNumbers.txt", std::ofstream::out | std::ofstream::app);
 	cout<<"##################################################################"<<endl;
 	cout<<"##--Length: "<<lpr.length()<<"\t--##";
 	if(lpr.length() == 7 || lpr.length() ==10){	
@@ -205,7 +202,6 @@ void RecognizeLP::readNRecognize(VideoCapture& cap){
 		if (lpFile.is_open())
 		{
 			lpFile <<lpr<<"\n";
-
 		}
 		else cout << "Unable to open file";
 
@@ -213,13 +209,13 @@ void RecognizeLP::readNRecognize(VideoCapture& cap){
 	else{
 		cout<<"License Plate not detected"<<endl;
 	}
-
+	lpr = "";
 	cout<<"##################################################################"<<endl;
+	lpFile.close();
 
 }
 
 
 RecognizeLP::~RecognizeLP(){
-	lpFile.close();
-	//delete this;
+	//lpFile.close();
 }

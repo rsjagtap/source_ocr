@@ -158,21 +158,21 @@ if(cars[i].x <= (src_img.size().width - cars[i].width) && cars[i].y <= (src_img.
 				//	string resizeImage = dataSetPath + "c2.jpg";
 
 
-					std::vector<std::vector<cv::Point> > contours;
+					//std::vector<std::vector<cv::Point> > contours;
 
 
 					cout<<"----------------------createFolder4CroppedText()----------------------"<<endl;
 					extract.createFolder4CroppedText();
 					cout<<"----------------------initilizeTesseract(api)----------------------"<<endl;
-					extract.initilizeTesseract();
+					extract.initilizeTesseract(extract.api);
 					cout<<"----------------------binarizeLP----------------------"<<endl;
-					extract.binarizeLP(imageToSave);
+					extract.binarizeLP(imageToSave,extract.binaryImage, extract.grayImage , extract.threholdImage);
 					cout<<"----------------------findContours----------------------"<<endl;
-					extract.findContours(extract.contours);
+					extract.findContours(extract.binaryImage,extract.contours);
 					cout<<"----------------------recognizeTextInImg----------------------"<<endl;
-					extract.recognizeTextInImg();
+					extract.recognizeTextInImg(extract.api, extract.binaryImage, extract.grayImage, extract.outText);
 					cout<<"----------------------cropTextWithContourPoints----------------------"<<endl;
-					extract.cropTextWithContourPoints();
+					extract.cropTextWithContourPoints(extract.api, extract.conf , extract.conf_avg, extract.threholdImage, imageToSave, extract.const_y1, extract.const_y2, extract.letter_count);
 
 
 
@@ -190,14 +190,14 @@ if(cars[i].x <= (src_img.size().width - cars[i].width) && cars[i].y <= (src_img.
 					extract.radius.resize(extract.contours.size());
 
 
-					extract.drawRectOverSingleText(extract.contours,extract.contours_poly, extract.boundRect, extract.boundRectCrop, extract.center, extract.radius);
+					extract.drawRectOverSingleText(extract.binaryImage, extract.contours, extract.const_y1, extract.const_y2, extract.letter_count, extract.count_crop, extract.drawing, extract.contours_poly, extract.boundRect, extract.boundRectCrop, extract.center, extract.radius);
 
 
 					cout<<"----------------------sort----------------------"<<endl;
-					extract.sort(extract.contours, extract.boundRectCrop);
+					extract.sort(extract.count_crop, extract.contours, extract.boundRectCrop);
 					cout<<"----------------------cropRectOverSingleText----------------------"<<endl;
 					extract.count_temp = 0;
-					extract.cropRectOverSingleText(extract.contours,extract.boundRectCrop);
+					extract.cropRectOverSingleText(extract.count_crop, extract.threholdImage, extract.binaryImage, extract.count_temp, extract.drawing, extract.imageToSave_crop, extract.contours, extract.boundRectCrop);
 
 
 					cout<<"===================================================================================================="<<endl;
@@ -207,12 +207,14 @@ if(cars[i].x <= (src_img.size().width - cars[i].width) && cars[i].y <= (src_img.
 
 					string lpPath;
 					VideoCapture cap;
-					lpPath = "/home/rohit/Desktop/source_ocr/module4/crop/crop%d.jpg";
+					lpPath = "/home/rohit/Desktop/source_ocr/module7/crop/crop%d.jpg";
 					cap.open(lpPath);
 
 					detect.captrureLP(cap);
-					detect.readNRecognize(cap);
+					detect.readNRecognize(cap,detect.scene_plate, detect.lpr,detect.count_letters, detect.lpFile);
+					//waitKey(0);
 					detect.count_letters = 0;
+
 					extract.count_crop = 0;
 					extract.count_temp = 0;
 					memset(extract.imageToSave, 0, sizeof extract.imageToSave);

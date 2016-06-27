@@ -49,7 +49,7 @@ ExtractSingleText::ExtractSingleText(){
 }
 
 ExtractSingleText::~ExtractSingleText(){
-	delete this;
+//	delete this;
 }
 
 
@@ -296,6 +296,7 @@ void ExtractSingleText::recognizeTextInImg(){
 	// Get OCR result
 	outText = api->GetUTF8Text();
 	printf("OCR output:\n%s", outText);
+
 }
 
 
@@ -378,6 +379,25 @@ void ExtractSingleText::cropTextWithContourPoints(){
 			//	vector<Point2f>center( contours.size() );
 			//	vector<float>radius( contours.size() );
 
+//				vector<vector<Point> > contours_poly_temp = contours_poly;
+//			    vector<Rect> boundRect_temp = boundRect;
+//				vector<Rect> boundRectCrop_temp = boundRectCrop;
+//cout<<"SIZEEEEEEEEEEEEEEE: 1"<<boundRectCrop_temp.size()<<" | "<<boundRectCrop.size()<<endl;
+//cout<<"SIZEEEEEEEEEEEEEEE: 2"<<boundRect_temp.size()<<" | "<<boundRect.size()<<endl;
+
+
+//				for( int i = 0; i < contours.size(); i++ ){
+//					contours_poly_temp[i] = contours_poly[i];
+//					boundRect_temp[i] =  boundRect[i];
+//					boundRectCrop_temp[i] = boundRectCrop[i];
+//
+//				}
+
+//cout<<"contor values "<<contours_poly_temp[1]<<" | "<<contours_poly[1]<<endl;
+
+
+			//	vector<Point2f>center( contours.size() );
+			//	vector<float>radius( contours.size() );
 
 			for( int i = 0; i < contours.size(); i++ )
 			{ approxPolyDP( Mat(contours[i]), contours_poly[i], 3, true );
@@ -387,7 +407,7 @@ void ExtractSingleText::cropTextWithContourPoints(){
 			}
 
 
-
+			//cout<<"values "<<boundRectCrop_temp[1]<<" | "<<boundRectCrop[1]<<endl;
 
 
 
@@ -423,6 +443,19 @@ void ExtractSingleText::cropTextWithContourPoints(){
 
 				//       circle( drawing, center[i], (int)radius[i], color, 2, 8, 0 );
 			}
+
+//			contours_poly = contours_poly_temp;
+//		    boundRect = boundRect_temp;
+//			boundRectCrop = boundRectCrop_temp;
+
+//							for( int i = 0; i < contours.size(); i++ ){
+//								contours_poly[i] = contours_poly_temp[i];
+//								boundRect[i] = boundRect_temp[i];
+//								boundRectCrop[i] = boundRectCrop_temp[i];
+//
+//							}
+
+
 		}
 
 		// sort
@@ -456,7 +489,7 @@ void ExtractSingleText::cropTextWithContourPoints(){
 
 			cout<<endl<<endl;
 
-			//count_temp = 0;
+			count_temp = 0;
 			for( int i = 0; i< count_crop; i++ )
 			{
 				cout<<"p1: "<<boundRectCrop[i].tl() << " p2: "<<boundRectCrop[i].br()<<endl;
@@ -494,7 +527,8 @@ void ExtractSingleText::cropTextWithContourPoints(){
 			//}while(conf_avg < 90);
 
 			cv::imshow("rect", imgThresh);
-			//waitKey(0);
+			//count_crop = 0;
+			waitKey(30);
 
 			// Destroy used object and release memory
 			//    api->End();
@@ -542,5 +576,6 @@ void ExtractSingleText::cropTextWithContourPoints(){
 			}
 			cout<<"p1: "<<boundRectCrop[i].tl() << " p2: "<<boundRectCrop[i].br()<<endl;
 		}
+
 
 	}

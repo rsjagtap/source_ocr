@@ -34,7 +34,7 @@ using namespace cv;
 
 class ExtractSingleText{
 
-
+public:
 	int count_crop;
 	int count_temp;
 	float conf;
@@ -51,8 +51,13 @@ class ExtractSingleText{
 	Mat binaryImage, grayImage, threholdImage, drawing;
 
 	tesseract::TessBaseAPI *api;
-
-
+public:
+	std::vector<std::vector<cv::Point> > contours;
+	vector<vector<Point> > contours_poly;
+	vector<Rect> boundRect;
+	vector<Point2f>center;
+	vector<Rect> boundRectCrop;
+	vector<float>radius;
 
 
 	public:

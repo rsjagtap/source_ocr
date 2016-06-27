@@ -41,7 +41,7 @@ int main( int argc, char** argv ){
 	cout<<"----------------------binarizeLP----------------------"<<endl;
 	extract.binarizeLP(inpImage);
 	cout<<"----------------------findContours----------------------"<<endl;
-	extract.findContours(contours);
+	extract.findContours(extract.contours);
 	cout<<"----------------------recognizeTextInImg----------------------"<<endl;
 	extract.recognizeTextInImg();
 	cout<<"----------------------cropTextWithContourPoints----------------------"<<endl;
@@ -50,18 +50,25 @@ int main( int argc, char** argv ){
 
 
 	cout<<"----------------------drawRectOverSingleText----------------------"<<endl;
-	vector<vector<Point> > contours_poly( contours.size() );
-	vector<Rect> boundRect( contours.size() );
-	vector<Rect> boundRectCrop(contours.size());
-	vector<Point2f>center( contours.size() );
-	vector<float>radius( contours.size() );
-	extract.drawRectOverSingleText(contours, contours_poly, boundRect, boundRectCrop, center, radius);
+//	vector<vector<Point> > contours_poly( contours.size() );
+//	vector<Rect> boundRect( contours.size() );
+//	vector<Rect> boundRectCrop(contours.size());
+//	vector<Point2f>center( contours.size() );
+//	vector<float>radius( contours.size() );
+
+	extract.contours_poly.resize(extract.contours.size());
+	extract.boundRect.resize(extract.contours.size());
+	extract.center.resize(extract.contours.size());
+	extract.boundRectCrop.resize(extract.contours.size());
+	extract.radius.resize(extract.contours.size());
+
+	extract.drawRectOverSingleText(extract.contours, extract.contours_poly, extract.boundRect, extract.boundRectCrop, extract.center, extract.radius);
 
 
 	cout<<"----------------------sort----------------------"<<endl;
-	extract.sort(contours, boundRectCrop);
+	extract.sort(extract.contours, extract.boundRectCrop);
 	cout<<"----------------------cropRectOverSingleText----------------------"<<endl;
-	extract.cropRectOverSingleText(contours, boundRectCrop);
+	extract.cropRectOverSingleText(extract.contours, extract.boundRectCrop);
 
 
 	cout<<"===================================================================================================="<<endl;
