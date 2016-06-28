@@ -31,6 +31,7 @@ class RecognizeLP
 		//        int count_letters = 0;
 		int count_non_letters;
 		ofstream lpFile;
+		ofstream non_lpFile;
 
 		Mat scene_plate;
 		string lpr;

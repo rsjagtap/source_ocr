@@ -161,16 +161,22 @@ void ExtractSingleText::binarizeLP(string inpImage, Mat& binaryImage, Mat& grayI
 	float conf_avg = 0;
 	//do{
 	cvtColor(img_src,gray,CV_BGR2GRAY);
+#ifdef SHOW_STEPS
 	imshow("gray",gray);
+#endif
 	cv::GaussianBlur(gray, gray, cv::Size(3, 3), 0);
+#ifdef SHOW_STEPS
 	imshow("blur",gray);
+#endif
 	cv::threshold(gray, imgThresh, 70, 255,CV_THRESH_BINARY);
 
 	cv::Mat imgThreshCopy = imgThresh.clone();
 	//adaptiveThreshold(gray,imgThreshCopy,255,CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY,75,10);
 
 	cv::bitwise_not(imgThreshCopy,imgThreshCopy);
+#ifdef SHOW_STEPS
 	imshow("thrash",imgThreshCopy);
+#endif
 
 
 
@@ -297,9 +303,9 @@ void ExtractSingleText::recognizeTextInImg(tesseract::TessBaseAPI* api, Mat& bin
 void ExtractSingleText::cropTextWithContourPoints(tesseract::TessBaseAPI* api, float& conf , float& conf_avg, Mat& threholdImage, char* imageToSave, int& const_y1, int& const_y2, int& letter_count){
 	//float conf = 0;
 	//float conf_avg = 0;
-	//int letter_count = 0;
-	//int const_y1 = 0;
-	//int const_y2 = 0;
+//	letter_count = 0;
+	//const_y1 = 0;
+	//const_y2 = 0;
 	Mat imgThresh =  threholdImage.clone();
 	// To crop text with counter points
 
@@ -338,7 +344,9 @@ cout<<"woking 3"<<endl;
 cout<<"woking 4"<<endl;
 			imwrite(imageToSave, crop_img);
 cout<<"woking 5"<<endl;
+#ifdef SHOW_STEPS
 			cv::imshow("crop", crop_img);
+#endif
 cout<<"woking 6"<<endl;
 
 			printf("word: '%s';  \tconf: %.2f; BoundingBox: %d,%d,%d,%d;\n",
@@ -465,15 +473,19 @@ cout<<"White Pixels: "<<(nonZero/nPixels)<<endl;
 		if((nonZero/nPixels)*100 < 90 && (minboundRectCropHeight-100) < boundRectCrop[i].height){
 		sprintf(imageToSave_crop,"%s//crop%d.jpg","../crop/",count_temp);
 		imwrite(imageToSave_crop, crop_img_text);
+#ifdef SHOW_STEPS
 		cv::imshow("crop_text", crop_img_text);
+#endif
 		count_temp +=1; 
 		}
 
 	}
 
 	cout<<endl<<endl;
+#ifdef SHOW_STEPS
 	cv::imshow("contours_rect", imgThreshCopy);
 	cv::imshow("drawings", drawing);
+#endif
 
 
 
@@ -485,8 +497,9 @@ cout<<"White Pixels: "<<(nonZero/nPixels)<<endl;
 
 
 	//}while(conf_avg < 90);
-
+#ifdef SHOW_STEPS
 	cv::imshow("rect", imgThresh);
+#endif
 	//waitKey(0);
 
 	// Destroy used object and release memory

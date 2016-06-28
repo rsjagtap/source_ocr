@@ -142,6 +142,7 @@ void RecognizeLP::read_image(int width, int height, char *image, Mat& scene_plat
 	tess_api->SetImage((uchar*)scene_plate.data, scene_plate.size().width,scene_plate.size().height,scene_plate.channels(),scene_plate.step1());
 	tess_api->Recognize(0);
 	//char* out =tess_api->GetUTF8Text();
+	//temp = "";
 	string temp = tess_api->GetUTF8Text();
 
 	temp.erase(std::remove(temp.begin(), temp.end(), '\n'), temp.end());
@@ -167,7 +168,7 @@ void RecognizeLP::read_image(int width, int height, char *image, Mat& scene_plat
 	//		exit(0);
 	//		}
 	cout<<count_letters - 1<<"\t|\t"<<lpr<<endl;
-	temp = "";
+	//temp = "";
 	//	}
 	//	else{
 	//		count_non_letters +=temp.length();
@@ -194,7 +195,8 @@ void RecognizeLP::readNRecognize(VideoCapture& cap, Mat& scene_plate, string& lp
 	//      lpr.erase(std::remove(lpr.begin(), lpr.end(), '\n'), lpr.end());
 	//      lpr.erase(std::remove(lpr.begin(), lpr.end(), ' '), lpr.end());
 	cout<<endl<<endl;
-	lpFile.open("../lpNumbers.txt", std::ofstream::out | std::ofstream::app);
+	lpFile.open("../lpNumbers.txt", std::ofstream::app);
+	non_lpFile.open("../non_lpNumbers.txt", std::ofstream::app);
 	cout<<"##################################################################"<<endl;
 	cout<<"##--Length: "<<lpr.length()<<"\t--##";
 	if(lpr.length() == 7 || lpr.length() ==10){	
@@ -208,10 +210,17 @@ void RecognizeLP::readNRecognize(VideoCapture& cap, Mat& scene_plate, string& lp
 	}
 	else{
 		cout<<"License Plate not detected"<<endl;
+		cout<<"\t\t##--License Plate No: "<<lpr<<"--##"<<endl;
+		if (non_lpFile.is_open())
+		{
+			non_lpFile <<lpr<<"\n";
+		}
+		else cout << "Unable to open file";
 	}
-	lpr = "";
+	//lpr = "";
 	cout<<"##################################################################"<<endl;
 	lpFile.close();
+	non_lpFile.close();
 
 }
 

@@ -139,7 +139,9 @@ void DetectLP::saveCroppedLP(){
 
 if(cars[i].x <= (src_img.size().width - cars[i].width) && cars[i].y <= (src_img.size().height - cars[i].height))
 {
+#ifdef SHOW_STEPS
 				imshow("Crop", src_img(cars[i]));
+#endif
 				CarCount +=1;
 				sprintf(imageToSave,"%s//car_plate_%d.jpg",folderName.c_str(),CarCount);
 				imwrite(imageToSave, src_img(cars[i]));
@@ -160,6 +162,16 @@ if(cars[i].x <= (src_img.size().width - cars[i].width) && cars[i].y <= (src_img.
 
 					//std::vector<std::vector<cv::Point> > contours;
 
+
+					extract.const_y1 = 0;
+					extract.const_y2 = 0;
+					extract.count_crop = 0;
+					extract.count_temp = 0;
+					extract.letter_count = 0;
+					extract.binaryImage.release();
+					extract.grayImage.release();
+					extract.threholdImage.release();
+					extract.drawing.release();
 
 					cout<<"----------------------createFolder4CroppedText()----------------------"<<endl;
 					extract.createFolder4CroppedText();
@@ -209,10 +221,11 @@ if(cars[i].x <= (src_img.size().width - cars[i].width) && cars[i].y <= (src_img.
 					VideoCapture cap;
 					lpPath = "/home/rohit/Desktop/source_ocr/module7/crop/crop%d.jpg";
 					cap.open(lpPath);
+					detect.lpr = "";
 
 					detect.captrureLP(cap);
 					detect.readNRecognize(cap,detect.scene_plate, detect.lpr,detect.count_letters, detect.lpFile);
-					//waitKey(0);
+					//waitKey(1);
 					detect.count_letters = 0;
 
 					extract.count_crop = 0;
@@ -268,10 +281,11 @@ if(cars[i].x <= (src_img.size().width - cars[i].width) && cars[i].y <= (src_img.
 //#endif
 
 void DetectLP::showResultLPOnFrame(){
+#ifdef SHOW_STEPS
 		if(!src_img.empty())
 			imshow("Result", src_img);
-
-		//waitKey(1);
+#endif
+		waitKey(1);
 }
 		//	int c = waitKey(30);
 		//	if((char)c == 37)

@@ -6,6 +6,8 @@
  */
 #include "DetectLP.h"
 
+///#define SHOW_STEPS
+
 int main( int argc, char** argv ){
 
 	DetectLP detectLP;

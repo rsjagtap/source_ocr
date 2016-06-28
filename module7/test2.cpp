@@ -26,12 +26,12 @@ cout<<endl<<endl;
 	string inpImage = argv[1];
 	
 
-        //string folderName = "crop";
-        string resizeImageCommand = "convert " + inpImage + " -resize 4000 ../../module1/dataset/c2.jpg";
-	system(resizeImageCommand.c_str());
-	cout<<resizeImageCommand<<endl;
-	
-	string resizeImage = dataSetPath + "c2.jpg";
+//        //string folderName = "crop";
+//        string resizeImageCommand = "convert " + inpImage + " -resize 4000 ../../module1/dataset/c2.jpg";
+//	system(resizeImageCommand.c_str());
+//	cout<<resizeImageCommand<<endl;
+//
+//	string resizeImage = dataSetPath + "c2.jpg";
 
 
 	int count_crop = 0;
@@ -58,24 +58,30 @@ cout<<endl<<endl;
 	cout<<"----------------------initilizeTesseract(api)----------------------"<<endl;
 	extract.initilizeTesseract(api);
 	cout<<"----------------------binarizeLP----------------------"<<endl;
-	extract.binarizeLP(resizeImage, binaryImage, grayImage , threholdImage);
+	extract.binarizeLP(inpImage, binaryImage, grayImage , threholdImage);
 	cout<<"----------------------findContours----------------------"<<endl;
-	extract.findContours(binaryImage, contours);
+	extract.findContours(binaryImage, extract.contours);
 	cout<<"----------------------recognizeTextInImg----------------------"<<endl;
 	extract.recognizeTextInImg(api, binaryImage, grayImage, outText);
 	cout<<"----------------------cropTextWithContourPoints----------------------"<<endl;
 	extract.cropTextWithContourPoints(api, conf , conf_avg, threholdImage, imageToSave, const_y1, const_y2, letter_count);
 	cout<<"----------------------drawRectOverSingleText----------------------"<<endl;
-	vector<vector<Point> > contours_poly( contours.size() );
-        vector<Rect> boundRect( contours.size() );
-        vector<Rect> boundRectCrop(contours.size());
-        vector<Point2f>center( contours.size() );
-        vector<float>radius( contours.size() );
-	extract.drawRectOverSingleText(binaryImage, contours, const_y1, const_y2, letter_count, count_crop, drawing, contours_poly, boundRect, boundRectCrop, center, radius);
+//	vector<vector<Point> > contours_poly( contours.size() );
+//        vector<Rect> boundRect( contours.size() );
+//        vector<Rect> boundRectCrop(contours.size());
+//        vector<Point2f>center( contours.size() );
+//        vector<float>radius( contours.size() );
+	extract.contours_poly.resize(extract.contours.size());
+	extract.boundRect.resize(extract.contours.size());
+	extract.center.resize(extract.contours.size());
+	extract.boundRectCrop.resize(extract.contours.size());
+	extract.radius.resize(extract.contours.size());
+
+	extract.drawRectOverSingleText(binaryImage, extract.contours, const_y1, const_y2, letter_count, count_crop, drawing, extract.contours_poly, extract.boundRect, extract.boundRectCrop, extract.center, extract.radius);
 	cout<<"----------------------sort----------------------"<<endl;
-	extract.sort(count_crop, contours, boundRectCrop);
+	extract.sort(count_crop, extract.contours, extract.boundRectCrop);
 	cout<<"----------------------cropRectOverSingleText----------------------"<<endl;
-	extract.cropRectOverSingleText(count_crop, threholdImage, binaryImage, count_temp, drawing, imageToSave_crop, contours, boundRectCrop);
+	extract.cropRectOverSingleText(count_crop, threholdImage, binaryImage, count_temp, drawing, imageToSave_crop, extract.contours, extract.boundRectCrop);
 
 cout<<"===================================================================================================="<<endl;
 cout<<"##########################################--RecognizeLP--###########################################"<<endl;
