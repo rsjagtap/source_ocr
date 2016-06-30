@@ -32,6 +32,7 @@ using namespace std;
 
 class DetectLP{
 
+public:
 	CascadeClassifier car_cascade;
 	ExtractSingleText extract;
 	RecognizeLP detect;
@@ -62,9 +63,9 @@ public:
 	~DetectLP();
 	int loadCascade(string cascadeFile);
 	void createCapturer(VideoCapture& capture);
-	void createFolderToSvCroppedLP();
+	void createFolderToSvCroppedLP(string& folderName);
 	void detectLPUseCascadeFile(VideoCapture& capture);
-	void saveCroppedLP();
+	void saveCroppedLP(string& folderName);
 	void showResultLPOnFrame();
 	//void destroyNReleaseCapNWindow();
 };

@@ -38,7 +38,7 @@ DetectLP::DetectLP(){
 	count = true;
 	CarCount = 0;
 
-	folderName = "../Cars_Plates";
+	folderName = "../Cars_Plates/";
 
 }
 
@@ -60,10 +60,10 @@ void DetectLP::createCapturer(VideoCapture& capture){
 }
 
 
-void DetectLP::createFolderToSvCroppedLP(){
+void DetectLP::createFolderToSvCroppedLP(string& folderName){
 
 
-	string folderRemoveCommand = "rm -rf" + folderName;
+	string folderRemoveCommand = "rm -rf " + folderName;
 	system(folderRemoveCommand.c_str());	//Remove the folder if already present
 	string folderCreateCommand = "mkdir " + folderName;
 	system(folderCreateCommand.c_str());	//Create the folder if not present.
@@ -82,8 +82,12 @@ cout<<"height "<< src_img.size().height << endl;
 }
 
 
-void DetectLP::saveCroppedLP(){
+void DetectLP::saveCroppedLP(string& folderName){
 		for(int i = 0; i<cars.size(); i++){
+
+//		    extract.removeImgCommand = "rm " + extract.dataSetPath + "c2.jpg";
+//		    system(extract.removeImgCommand.c_str());
+//		    cout<<extract.removeImgCommand<<endl;
 
 
 
@@ -143,7 +147,7 @@ if(cars[i].x <= (src_img.size().width - cars[i].width) && cars[i].y <= (src_img.
 				imshow("Crop", src_img(cars[i]));
 #endif
 				CarCount +=1;
-				sprintf(imageToSave,"%s//car_plate_%d.jpg",folderName.c_str(),CarCount);
+				sprintf(imageToSave,"%scar_plate_%d.jpg",folderName.c_str(),CarCount);
 				imwrite(imageToSave, src_img(cars[i]));
 
 
@@ -162,7 +166,7 @@ if(cars[i].x <= (src_img.size().width - cars[i].width) && cars[i].y <= (src_img.
 
 					//std::vector<std::vector<cv::Point> > contours;
 
-
+					bool check = true;
 					extract.const_y1 = 0;
 					extract.const_y2 = 0;
 					extract.count_crop = 0;
@@ -172,19 +176,30 @@ if(cars[i].x <= (src_img.size().width - cars[i].width) && cars[i].y <= (src_img.
 					extract.grayImage.release();
 					extract.threholdImage.release();
 					extract.drawing.release();
+					extract.folderCreateCommand = "";
+					extract.folderRemoveCommand = "";
+					extract.removeImgCommand = "";
+					extract.resizeImageCommand = "";
+					extract.resizeImage = "";
+
 
 					cout<<"----------------------createFolder4CroppedText()----------------------"<<endl;
-					extract.createFolder4CroppedText();
+					extract.createFolder4CroppedText(extract.folderName,extract.dataSetPath,extract.folderRemoveCommand, extract.folderCreateCommand,extract.removeImgCommand);
 					cout<<"----------------------initilizeTesseract(api)----------------------"<<endl;
 					extract.initilizeTesseract(extract.api);
 					cout<<"----------------------binarizeLP----------------------"<<endl;
-					extract.binarizeLP(imageToSave,extract.binaryImage, extract.grayImage , extract.threholdImage);
+					//string InpImage(imageToSave);
+					//cout<<"---------------"<<InpImage<<endl;
+					check = extract.binarizeLP(imageToSave,extract.binaryImage, extract.grayImage , extract.threholdImage, extract.dataSetPath, extract.resizeImageCommand,extract.resizeImage, extract.count_convert, extract.imageToSave_convert);
+					if(check == true){
+					//InpImage = "";
 					cout<<"----------------------findContours----------------------"<<endl;
 					extract.findContours(extract.binaryImage,extract.contours);
 					cout<<"----------------------recognizeTextInImg----------------------"<<endl;
 					extract.recognizeTextInImg(extract.api, extract.binaryImage, extract.grayImage, extract.outText);
 					cout<<"----------------------cropTextWithContourPoints----------------------"<<endl;
 					extract.cropTextWithContourPoints(extract.api, extract.conf , extract.conf_avg, extract.threholdImage, imageToSave, extract.const_y1, extract.const_y2, extract.letter_count);
+					extract.letter_count = 0;
 
 
 
@@ -208,7 +223,7 @@ if(cars[i].x <= (src_img.size().width - cars[i].width) && cars[i].y <= (src_img.
 					cout<<"----------------------sort----------------------"<<endl;
 					extract.sort(extract.count_crop, extract.contours, extract.boundRectCrop);
 					cout<<"----------------------cropRectOverSingleText----------------------"<<endl;
-					extract.count_temp = 0;
+					//extract.count_temp = 0;
 					extract.cropRectOverSingleText(extract.count_crop, extract.threholdImage, extract.binaryImage, extract.count_temp, extract.drawing, extract.imageToSave_crop, extract.contours, extract.boundRectCrop);
 
 
@@ -218,21 +233,27 @@ if(cars[i].x <= (src_img.size().width - cars[i].width) && cars[i].y <= (src_img.
 					cout<<endl<<endl;
 
 					string lpPath;
-					VideoCapture cap;
-					lpPath = "/home/rohit/Desktop/source_ocr/module7/crop/crop%d.jpg";
-					cap.open(lpPath);
+					detect.scene_plate.release();
 					detect.lpr = "";
+					detect.count_letters = 0;
+					VideoCapture cap;
+					lpPath = "../crop/crop%d.jpg";
+					cap.open(lpPath);
+
 
 					detect.captrureLP(cap);
 					detect.readNRecognize(cap,detect.scene_plate, detect.lpr,detect.count_letters, detect.lpFile);
 					//waitKey(1);
-					detect.count_letters = 0;
+//				    extract.removeImgCommand = "rm " + extract.dataSetPath + "c2.jpg";
+//				    system(extract.removeImgCommand.c_str());
+//				    cout<<extract.removeImgCommand<<endl;
 
-					extract.count_crop = 0;
-					extract.count_temp = 0;
+
+					//extract.count_crop = 0;
+					//extract.count_temp = 0;
 					memset(extract.imageToSave, 0, sizeof extract.imageToSave);
 					memset(extract.imageToSave_crop, 0, sizeof extract.imageToSave_crop);
-
+					}
 
 
 
@@ -285,7 +306,7 @@ void DetectLP::showResultLPOnFrame(){
 		if(!src_img.empty())
 			imshow("Result", src_img);
 #endif
-		waitKey(1);
+		waitKey(30);
 }
 		//	int c = waitKey(30);
 		//	if((char)c == 37)

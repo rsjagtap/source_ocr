@@ -11,6 +11,7 @@
 int main( int argc, char** argv ){
 
 	DetectLP detectLP;
+
 	VideoCapture capture(argv[1]);
 	string cascadeFile = argv[2];
 	int ldcascade = detectLP.loadCascade(cascadeFile);
@@ -18,13 +19,13 @@ int main( int argc, char** argv ){
 		detectLP.createCapturer(capture);
 		cout<<"working 1"<<endl;
 
-			detectLP.createFolderToSvCroppedLP();
+			detectLP.createFolderToSvCroppedLP(detectLP.folderName);
 			cout<<"working 2"<<endl;
 			while(capture.isOpened()){
 				cout<<"working 3"<<endl;
 				detectLP.detectLPUseCascadeFile(capture);
 				cout<<"working 4"<<endl;
-				detectLP.saveCroppedLP();
+				detectLP.saveCroppedLP(detectLP.folderName);
 				//cout<<"working 5"<<endl;
 				//detectLP.saveCroppedLP();
 				cout<<"working 6"<<endl;

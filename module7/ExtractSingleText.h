@@ -45,6 +45,9 @@ class ExtractSingleText{
 
         //string folderName = "crop";
     string resizeImageCommand;// = "convert " + inpImage + " -resize 4000 ../../module1/dataset/c2.jpg";
+    string folderRemoveCommand;
+    string folderCreateCommand;
+    string removeImgCommand;
 	//system(resizeImageCommand.c_str());
 	//cout<<resizeImageCommand<<endl;
 
@@ -58,11 +61,15 @@ class ExtractSingleText{
 	char *outText;
 	char imageToSave[50];
 	char imageToSave_crop[50];
+	int count_convert;
+	char imageToSave_convert[50];
 
 	int letter_count;// = 0;
 	int const_y1;// = 0;
 	int const_y2;// = 0;
 	string dataSetPath;
+	string folderName;
+
 
 	std::vector<std::vector<cv::Point> > contours;
 	vector<vector<Point> > contours_poly;
@@ -72,9 +79,9 @@ class ExtractSingleText{
 	vector<float>radius;
 
 	ExtractSingleText();
-	void createFolder4CroppedText();
+	void createFolder4CroppedText(string& folderName, string& dataSetPath, string& folderRemoveCommand, string& folderCreateCommand,string& removeImgCommand);
 	void initilizeTesseract(tesseract::TessBaseAPI* api);
-	void binarizeLP(string inpImage, Mat& binaryImage , Mat& grayImage, Mat& threholdImage);
+	bool binarizeLP(char* inpImage, Mat& binaryImage , Mat& grayImage, Mat& threholdImage, string& dataSetPath, string& resizeImageCommand,string& resizeImage, int& count_convert,char*  imageToSave_convert);
 	void findContours(Mat& binaryImage, std::vector<std::vector<cv::Point> > &contours);
 	void recognizeTextInImg(tesseract::TessBaseAPI* api, Mat& binaryImage, Mat& grayImage, char *outText);
 	void cropTextWithContourPoints(tesseract::TessBaseAPI* api, float& conf , float& conf_avg, Mat& threholdImage, char* imageToSave,int& const_y1,int& const_y2,int& letter_count);

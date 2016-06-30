@@ -44,17 +44,33 @@ ExtractSingleText::ExtractSingleText(){
 	const_y2 = 0;
 	api = new tesseract::TessBaseAPI();
 	dataSetPath = "/home/rohit/Desktop/source_ocr/module7/";
+	folderName = "crop";
+    resizeImageCommand = "";// = "convert " + inpImage + " -resize 4000 ../../module1/dataset/c2.jpg";
+    folderRemoveCommand = "";
+    folderCreateCommand ="";
+    removeImgCommand ="";
+    count_convert = 0;
 
 
 }
 
-void ExtractSingleText::createFolder4CroppedText(){
+void ExtractSingleText::createFolder4CroppedText(string& folderName,string& dataSetPath, string& folderRemoveCommand, string& folderCreateCommand,string& removeImgCommand){
 
-	string folderName = "crop";
-	string folderRemoveCommand = "rm -rf ../" + folderName;
+	folderName = "crop";
+	folderRemoveCommand = "rm -rf ../" + folderName;
 	system(folderRemoveCommand.c_str());	//Remove the folder if already present
-	string folderCreateCommand = "mkdir ../" + folderName;
+	folderCreateCommand = "mkdir ../" + folderName;
 	system(folderCreateCommand.c_str());	//Create the folder if not present.
+
+//	string folderRemoveCommand1 = "rm -rf ../converted";
+//	system(folderRemoveCommand1.c_str());	//Remove the folder if already present
+	string folderCreateCommand1 = "mkdir ../converted";
+	system(folderCreateCommand1.c_str());	//Create the folder if not present.
+
+//    removeImgCommand = "rm " + dataSetPath + "c2.jpg";
+//    system(removeImgCommand.c_str());
+//    cout<<removeImgCommand<<endl;
+
 }
 
 
@@ -141,18 +157,42 @@ void ExtractSingleText::initilizeTesseract(tesseract::TessBaseAPI* api){
 }
 
 
-void ExtractSingleText::binarizeLP(string inpImage, Mat& binaryImage, Mat& grayImage , Mat& threholdImage){
-	Mat gray, imgThresh;
+bool ExtractSingleText::binarizeLP(char* inpImage1, Mat& binaryImage, Mat& grayImage , Mat& threholdImage, string& dataSetPath, string& resizeImageCommand,string& resizeImage, int& count_convert, char* imageToSave_convert){
+	//Mat gray, imgThresh;
 
-	string removeImg = "../Cars_Plates";
-    string removeImgCommand = "rm " + dataSetPath + "c2.jpg";
-	string resizeImageCommand = "convert " + inpImage + " -resize 4000 ../c2.jpg";
+	//string removeImg = "../Cars_Plates";
+//    string removeImgCommand = "rm " + dataSetPath + "c2.jpg";
+//    system(removeImgCommand.c_str());
+//    cout<<removeImgCommand<<endl;
+	count_convert +=1;
+
+	sprintf(imageToSave_convert,"%s%d.jpg",dataSetPath.c_str(),count_convert);
+//	imwrite(imageToSave_convert, src_img(cars[i]));
+
+
+
+
+	resizeImageCommand = "";
+	string inpImage(inpImage1);
+	resizeImageCommand = "convert " + inpImage + " -resize 4000 "+ imageToSave_convert;
 	system(resizeImageCommand.c_str());
 	cout<<resizeImageCommand<<endl;
 
-	string resizeImage = dataSetPath + "c2.jpg";
+	resizeImage = "";
+	resizeImage = imageToSave_convert;
 
-	Mat img_src = imread(resizeImage);
+
+	Mat src_img = imread(resizeImage,0);
+if(src_img.empty())
+{
+	cout << "!!! Failed imread(): image not found" << endl;
+	return false;
+}
+else{
+	Mat gray_img;
+	cout<<"###"<<resizeImage<<endl;
+	cout<<"###"<<imageToSave_convert<<endl;
+
 
 
         //resize(img_src, img_src,Size(img_src.size().width*35, img_src.size().height*35));
@@ -160,22 +200,29 @@ void ExtractSingleText::binarizeLP(string inpImage, Mat& binaryImage, Mat& grayI
 	float conf = 0;
 	float conf_avg = 0;
 	//do{
-	cvtColor(img_src,gray,CV_BGR2GRAY);
-#ifdef SHOW_STEPS
-	imshow("gray",gray);
-#endif
-	cv::GaussianBlur(gray, gray, cv::Size(3, 3), 0);
-#ifdef SHOW_STEPS
-	imshow("blur",gray);
-#endif
-	cv::threshold(gray, imgThresh, 70, 255,CV_THRESH_BINARY);
+	//if(src_img.channels()>1)
+		gray_img = src_img.clone();
+		//cvtColor(src_img,gray_img,CV_BGR2GRAY);
+		//gray_img.convertTo(gray_img, CV_8U);
+	//else grayImage = src_img.clone();
 
-	cv::Mat imgThreshCopy = imgThresh.clone();
+		grayImage = gray_img.clone();
+#ifdef SHOW_STEPS
+	imshow("gray",grayImage);
+#endif
+	cv::GaussianBlur(grayImage, grayImage, cv::Size(3, 3), 0);
+#ifdef SHOW_STEPS
+	imshow("blur",grayImage);
+#endif
+	cv::threshold(grayImage, threholdImage, 70, 255,CV_THRESH_BINARY);
+
+	//cv::Mat imgThreshCopy = imgThresh.clone();
+	binaryImage = threholdImage.clone();;
 	//adaptiveThreshold(gray,imgThreshCopy,255,CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY,75,10);
 
-	cv::bitwise_not(imgThreshCopy,imgThreshCopy);
+	cv::bitwise_not(binaryImage,binaryImage);
 #ifdef SHOW_STEPS
-	imshow("thrash",imgThreshCopy);
+	imshow("thrash",binaryImage);
 #endif
 
 
@@ -189,14 +236,16 @@ void ExtractSingleText::binarizeLP(string inpImage, Mat& binaryImage, Mat& grayI
 
 
 	for (unsigned int i = 0; i < 13; i++) {
-		cv::dilate(imgThreshCopy, imgThreshCopy, structuringElement5x5);
-		cv::dilate(imgThreshCopy, imgThreshCopy, structuringElement5x5);
-		cv::erode(imgThreshCopy, imgThreshCopy, structuringElement5x5);
+		cv::dilate(binaryImage, binaryImage, structuringElement5x5);
+		cv::dilate(binaryImage, binaryImage, structuringElement5x5);
+		cv::erode(binaryImage, binaryImage, structuringElement5x5);
 	}
 
-	binaryImage = imgThreshCopy.clone();
-	grayImage = gray.clone();
-	threholdImage = imgThresh.clone();
+	//binaryImage = imgThreshCopy.clone();
+	//grayImage = gray.clone();
+	//threholdImage = imgThresh.clone();
+	return true;
+}
 
 }
 
@@ -217,28 +266,28 @@ void ExtractSingleText::binarizeLP(string inpImage, Mat& binaryImage, Mat& grayI
 void ExtractSingleText::findContours(Mat& binaryImage, std::vector<std::vector<cv::Point> > &contours){
 	//            cv::Mat imgThreshCopy = imgThresh.clone();
 
-	Mat imgThreshCopy = binaryImage.clone();
+//	Mat imgThreshCopy = binaryImage.clone();
 	//std::vector<std::vector<cv::Point> > contours;
 
 	//cv::findContours(imgThreshCopy, contours, cv::RETR_EXTERNAL,CV_CHAIN_APPROX_TC89_KCOS, Point(0, 0));
-	cv::findContours(imgThreshCopy, contours, /*cv::RETR_CCOMP CV_RETR_TREE*/ CV_RETR_LIST , cv::CHAIN_APPROX_SIMPLE);
+	cv::findContours(binaryImage, contours, /*cv::RETR_CCOMP CV_RETR_TREE*/ CV_RETR_LIST , cv::CHAIN_APPROX_SIMPLE);
 
 	//                                cv::drawContours(imgThreshCopy, contours, -1,cv::Scalar(255.0, 255.0, 255.0), 4);
 	//                                cv::imshow("contours", imgThreshCopy);
-	vector<vector<Point> > contours_poly( contours.size() );
-	vector<Rect> boundRect( contours.size() );
-	vector<Rect> boundRectCrop(contours.size());
-	vector<Point2f>center( contours.size() );
-	vector<float>radius( contours.size() );
+//	vector<vector<Point> > contours_poly( contours.size() );
+//	vector<Rect> boundRect( contours.size() );
+//	vector<Rect> boundRectCrop(contours.size());
+//	vector<Point2f>center( contours.size() );
+//	vector<float>radius( contours.size() );
+//
+//	for( int i = 0; i < contours.size(); i++ )
+//	{ approxPolyDP( Mat(contours[i]), contours_poly[i], 3, true );
+//		boundRect[i] = boundingRect( Mat(contours_poly[i]) );
+//		boundRectCrop[i] = boundingRect( Mat(contours_poly[i]) );
+//		minEnclosingCircle( (Mat)contours_poly[i], center[i], radius[i] );
+//	}
 
-	for( int i = 0; i < contours.size(); i++ )
-	{ approxPolyDP( Mat(contours[i]), contours_poly[i], 3, true );
-		boundRect[i] = boundingRect( Mat(contours_poly[i]) );
-		boundRectCrop[i] = boundingRect( Mat(contours_poly[i]) );
-		minEnclosingCircle( (Mat)contours_poly[i], center[i], radius[i] );
-	}
-
-	binaryImage = imgThreshCopy.clone();
+	//binaryImage = imgThreshCopy.clone();
 
 }
 	//  /// Draw polygonal contour + bonding rects + circles
@@ -273,16 +322,16 @@ void ExtractSingleText::findContours(Mat& binaryImage, std::vector<std::vector<c
 
 void ExtractSingleText::recognizeTextInImg(tesseract::TessBaseAPI* api, Mat& binaryImage, Mat& grayImage, char *outText){
 
-	Mat imgThreshCopy = binaryImage.clone();
-	Mat gray = grayImage.clone();
-	api->TesseractRect(imgThreshCopy.data, 1, imgThreshCopy.step1(), 0, 0, imgThreshCopy.cols, imgThreshCopy.rows);
+	//Mat imgThreshCopy = binaryImage.clone();
+	//Mat gray = grayImage.clone();
+	api->TesseractRect(binaryImage.data, 1, binaryImage.step1(), 0, 0, binaryImage.cols, binaryImage.rows);
 
 
-	Pix *image = pixCreate(imgThreshCopy.size().width, imgThreshCopy.size().height, 8);
+	Pix *image = pixCreate(binaryImage.size().width, binaryImage.size().height, 8);
 
-	for(int i=0; i<imgThreshCopy.rows; i++) 
-		for(int j=0; j<imgThreshCopy.cols; j++) 
-			pixSetPixel(image, j,i, (l_uint32) gray.at<uchar>(i,j));
+	for(int i=0; i<binaryImage.rows; i++)
+		for(int j=0; j<binaryImage.cols; j++)
+			pixSetPixel(image, j,i, (l_uint32) grayImage.at<uchar>(i,j));
 
 	api->SetPageSegMode(static_cast<tesseract::PageSegMode>(6));
 	api->SetOutputName("out");
@@ -306,7 +355,7 @@ void ExtractSingleText::cropTextWithContourPoints(tesseract::TessBaseAPI* api, f
 //	letter_count = 0;
 	//const_y1 = 0;
 	//const_y2 = 0;
-	Mat imgThresh =  threholdImage.clone();
+	//Mat imgThresh =  threholdImage.clone();
 	// To crop text with counter points
 
 	tesseract::ResultIterator* ri = api->GetIterator();
@@ -334,11 +383,11 @@ cout<<"woking 1"<<endl;
 			Rect roi(x1-5, const_y1-5,(x2+5)-(x1-5),(const_y2+5)-(const_y1-5));
 cout<<"woking 2"<<endl;
 //			Mat imgThreshClone = imgThresh.clone();
-cout<<"roi.height: "<< roi.height <<" | "<< imgThresh.rows<<endl;
-cout<<"roi.width: "<< roi.width <<" | "<< imgThresh.cols<<endl;
+cout<<"roi.height: "<< roi.height <<" | "<< threholdImage.rows<<endl;
+cout<<"roi.width: "<< roi.width <<" | "<< threholdImage.cols<<endl;
 //			if((roi.height <= imgThresh.rows) && (roi.width <= imgThresh.cols) ){
-if(roi.x >= 0 && roi.y >= 0 && roi.width + roi.x < imgThresh.cols && roi.height + roi.y < imgThresh.rows){
-			Mat crop_img = imgThresh(roi);
+if(roi.x >= 0 && roi.y >= 0 && roi.width + roi.x < threholdImage.cols && roi.height + roi.y < threholdImage.rows){
+			Mat crop_img = threholdImage(roi);
 cout<<"woking 3"<<endl;
 			sprintf(imageToSave,"%s//face%d.jpg","..",letter_count);
 cout<<"woking 4"<<endl;
@@ -362,9 +411,9 @@ cout<<"woking 6"<<endl;
 void ExtractSingleText::drawRectOverSingleText(Mat& binaryImage, std::vector<std::vector<cv::Point> > &contours,int& const_y1,int& const_y2,int& letter_count, int& count_crop, Mat& drawing, vector<vector<Point> > &contours_poly, vector<Rect> &boundRect, vector<Rect> &boundRectCrop, vector<Point2f> &center, vector<float> &radius){
 
 
-	Mat imgThreshCopy = binaryImage.clone();
+	//Mat imgThreshCopy = binaryImage.clone();
 	/// Draw polygonal contour + bonding rects + circles
-	drawing = Mat::zeros(imgThreshCopy.size(), CV_8UC3 );
+	drawing = Mat::zeros(binaryImage.size(), CV_8UC3 );
 
 
 //for( int i = 0; i < contours.size(); i++ )
@@ -399,12 +448,12 @@ void ExtractSingleText::drawRectOverSingleText(Mat& binaryImage, std::vector<std
 		drawContours(drawing, contours_poly, i, color, 1, 8, vector<Vec4i>(), 0, Point() );
 
 		cout<<" width is: "<<boundRect[i].width <<" |  height is : "<<(boundRect[i].height + boundRect[i].height/2)<<endl;
-                if(boundRect[i].width < (boundRect[i].height + boundRect[i].height/2)){
+                if(boundRect[i].width < (boundRect[i].height + boundRect[i].height/3)){
 
 		if(/*(const_y1-20) <= boundRect[i].y && (const_y2+20) >= (boundRect[i].y + boundRect[i].height) &&*/ (boundRect[i].height >= (((const_y2)- (const_y1))/5 + ((const_y2)- (const_y1))/6))) {
 
 			cout<<"bheight: "<<boundRect[i].height << " y2-y1: "<<(const_y2)- (const_y1)<<endl;
-			rectangle(imgThreshCopy, boundRect[i].tl(), boundRect[i].br(), color, 2, 8, 0 );
+			rectangle(binaryImage, boundRect[i].tl(), boundRect[i].br(), color, 2, 8, 0 );
 			cout<<"p1: "<<boundRect[i].tl() << " p2: "<<boundRect[i].br()<<endl;
 			boundRectCrop[count_crop].x = boundRect[i].x;
 			boundRectCrop[count_crop].y = boundRect[i].y;
@@ -432,8 +481,8 @@ void ExtractSingleText::drawRectOverSingleText(Mat& binaryImage, std::vector<std
 
 void ExtractSingleText::cropRectOverSingleText(int& count_crop, Mat& threholdImage, Mat& binaryImage, int& count_temp, Mat& drawing, char* imageToSave_crop, std::vector<std::vector<cv::Point> > &contours, vector<Rect> &boundRectCrop){
 
-	Mat imgThresh = threholdImage.clone();
-	Mat imgThreshCopy = binaryImage.clone();
+	//Mat imgThresh = threholdImage.clone();
+	//Mat imgThreshCopy = binaryImage.clone();
 
 //	vector<vector<Point> > contours_poly( contours.size() );
 //	vector<Rect> boundRectCrop(contours.size());
@@ -463,7 +512,7 @@ void ExtractSingleText::cropRectOverSingleText(int& count_crop, Mat& threholdIma
 		cout<<"p1: "<<boundRectCrop[i].tl() << " p2: "<<boundRectCrop[i].br()<<endl;
 		Rect roi_crop(boundRectCrop[i].x, boundRectCrop[i].y,boundRectCrop[i].width,boundRectCrop[i].height);
 
-		Mat crop_img_text = imgThresh(roi_crop);
+		Mat crop_img_text = threholdImage(roi_crop);
 double nonZero = countNonZero(crop_img_text);
 cout<<"NonZero: "<<nonZero<<endl;
 double nPixels = (crop_img_text.cols*crop_img_text.channels())*crop_img_text.rows;
@@ -483,7 +532,7 @@ cout<<"White Pixels: "<<(nonZero/nPixels)<<endl;
 
 	cout<<endl<<endl;
 #ifdef SHOW_STEPS
-	cv::imshow("contours_rect", imgThreshCopy);
+	cv::imshow("contours_rect", binaryImage);
 	cv::imshow("drawings", drawing);
 #endif
 
@@ -498,7 +547,7 @@ cout<<"White Pixels: "<<(nonZero/nPixels)<<endl;
 
 	//}while(conf_avg < 90);
 #ifdef SHOW_STEPS
-	cv::imshow("rect", imgThresh);
+//	cv::imshow("rect", imgThresh);
 #endif
 	//waitKey(0);
 
