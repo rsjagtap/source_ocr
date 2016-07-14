@@ -28,9 +28,6 @@ void ExtractSingleText::createFolder4CroppedText(string& dataSetPath){
 }
 
 
-
-
-
 void ExtractSingleText::initilizeTesseract(tesseract::TessBaseAPI* api){
 	api->SetVariable("tessedit_char_whitelist", "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
 	api->SetVariable("classify_font_name", "Arial.ttf");
@@ -106,10 +103,6 @@ bool ExtractSingleText::binarizeLP(string& imageToSave, Mat& binaryImage, Mat& g
 		imshow("thrash",binaryImage);
 #endif
 
-
-
-
-
 		cv::Mat structuringElement5x5 = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
 
 
@@ -127,20 +120,6 @@ bool ExtractSingleText::binarizeLP(string& imageToSave, Mat& binaryImage, Mat& g
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void ExtractSingleText::findContours(Mat& binaryImage, std::vector<std::vector<cv::Point> > &contours){
 
 	cv::findContours(binaryImage, contours, /*cv::RETR_CCOMP CV_RETR_TREE*/ CV_RETR_LIST , cv::CHAIN_APPROX_SIMPLE);
@@ -151,24 +130,29 @@ void ExtractSingleText::findContours(Mat& binaryImage, std::vector<std::vector<c
 void ExtractSingleText::recognizeTextInImg(tesseract::TessBaseAPI* api, Mat& binaryImage, Mat& grayImage, char *outText){
 
 
-	api->TesseractRect(binaryImage.data, 1, binaryImage.step1(), 0, 0, binaryImage.cols, binaryImage.rows);
+//	api->TesseractRect(binaryImage.data, 1, binaryImage.step1(), 0, 0, binaryImage.cols, binaryImage.rows);
 
-	Pix *image = pixCreate(binaryImage.size().width, binaryImage.size().height, 8);
-
-	for(int i=0; i<binaryImage.rows; i++)
-		for(int j=0; j<binaryImage.cols; j++)
-			pixSetPixel(image, j,i, (l_uint32) grayImage.at<uchar>(i,j));
+//	Pix *image = pixCreate(binaryImage.size().width, binaryImage.size().height, 8);
+//
+//	for(int i=0; i<binaryImage.rows; i++)
+//		for(int j=0; j<binaryImage.cols; j++)
+//			pixSetPixel(image, j,i, (l_uint32) grayImage.at<uchar>(i,j));
 
 	api->SetPageSegMode(static_cast<tesseract::PageSegMode>(6));
 	api->SetOutputName("out");
 
 
-	api->SetImage(image);
+	//api->SetImage(image);
+	api->SetImage((uchar*)binaryImage.data, binaryImage.size().width,binaryImage.size().height,binaryImage.channels(),binaryImage.step1());
 	api->Recognize(0);
 
-	outText = api->GetUTF8Text();
-	printf("OCR output:\n%s", outText);
+	//outText = api->GetUTF8Text();
+	string outText_Test = api->GetUTF8Text();
+//	/printf("OCR output:\n%s", outText_Test);
 
+	cout<<"OCR output:\n"<<outText_Test<<endl;
+
+	//free((Pix *)image);
 
 }
 
