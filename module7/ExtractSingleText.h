@@ -22,6 +22,7 @@
 #include <fstream>
 #include <sstream>
 #include <ctime>
+#include <unistd.h>
 
 #include <baseapi.h>
 
@@ -81,13 +82,13 @@ class ExtractSingleText{
 	ExtractSingleText();
 	void createFolder4CroppedText(string& folderName, string& dataSetPath, string& folderRemoveCommand, string& folderCreateCommand,string& removeImgCommand);
 	void initilizeTesseract(tesseract::TessBaseAPI* api);
-	bool binarizeLP(char* inpImage, Mat& binaryImage , Mat& grayImage, Mat& threholdImage, string& dataSetPath, string& resizeImageCommand,string& resizeImage, int& count_convert,char*  imageToSave_convert);
+	bool binarizeLP(string& imageToSave, Mat& binaryImage , Mat& grayImage, Mat& threholdImage, string& dataSetPath, string& resizeImageCommand,string& resizeImage, int& count_convert,char*  imageToSave_convert);
 	void findContours(Mat& binaryImage, std::vector<std::vector<cv::Point> > &contours);
 	void recognizeTextInImg(tesseract::TessBaseAPI* api, Mat& binaryImage, Mat& grayImage, char *outText);
-	void cropTextWithContourPoints(tesseract::TessBaseAPI* api, float& conf , float& conf_avg, Mat& threholdImage, char* imageToSave,int& const_y1,int& const_y2,int& letter_count);
+	void cropTextWithContourPoints(tesseract::TessBaseAPI* api, float& conf , float& conf_avg, Mat& threholdImage, char imageToSave[],int& const_y1,int& const_y2,int& letter_count);
 	void drawRectOverSingleText(Mat& binaryImage, std::vector<std::vector<cv::Point> > &contours,int& const_y1,int& const_y2,int& letter_count,int& count_crop, Mat& drawing, vector<vector<Point> > &contours_poly, vector<Rect> &boundRect, vector<Rect> &boundRectCrop, vector<Point2f> &center, vector<float> &radius);
 	void sort(int& count_crop, std::vector<std::vector<cv::Point> > &contours, vector<Rect> &boundRectCrop);
-	void cropRectOverSingleText(int& count_crop, Mat& threholdImage, Mat& binaryImage, int& count_temp, Mat& drawing, char* imageToSave_crop, std::vector<std::vector<cv::Point> > &contours, vector<Rect> &boundRectCrop);
+	void cropRectOverSingleText(int& count_crop, Mat& threholdImage, Mat& binaryImage, int& count_temp, Mat& drawing, char imageToSave_crop[], std::vector<std::vector<cv::Point> > &contours, vector<Rect> &boundRectCrop);
 
 };
 #endif /* EXTRACTSINGLETEXT_H_ */

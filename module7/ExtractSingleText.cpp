@@ -50,8 +50,13 @@ ExtractSingleText::ExtractSingleText(){
     folderCreateCommand ="";
     removeImgCommand ="";
     count_convert = 0;
+    outText = new char();
+    resizeImage = "";
 
 
+    imageToSave[50] = {0};
+	imageToSave_crop[50] = {0};
+	imageToSave_convert[50] = {0};
 }
 
 void ExtractSingleText::createFolder4CroppedText(string& folderName,string& dataSetPath, string& folderRemoveCommand, string& folderCreateCommand,string& removeImgCommand){
@@ -157,41 +162,68 @@ void ExtractSingleText::initilizeTesseract(tesseract::TessBaseAPI* api){
 }
 
 
-bool ExtractSingleText::binarizeLP(char* inpImage1, Mat& binaryImage, Mat& grayImage , Mat& threholdImage, string& dataSetPath, string& resizeImageCommand,string& resizeImage, int& count_convert, char* imageToSave_convert){
+bool ExtractSingleText::binarizeLP(string& imageToSave, Mat& binaryImage, Mat& grayImage , Mat& threholdImage, string& dataSetPath, string& resizeImageCommand,string& resizeImage, int& count_convert, char* imageToSave_convert){
 	//Mat gray, imgThresh;
 
 	//string removeImg = "../Cars_Plates";
 //    string removeImgCommand = "rm " + dataSetPath + "c2.jpg";
 //    system(removeImgCommand.c_str());
 //    cout<<removeImgCommand<<endl;
-	count_convert +=1;
+	//Mat src_img = imread(imageToSave, 1);
+    //if(src_img.data)
 
-	sprintf(imageToSave_convert,"%s%d.jpg",dataSetPath.c_str(),count_convert);
+        //printf( " No image data \n " );
+        //return -1;
+    //}
+
+	//if(!src_img.empty())
+
+//	char imageToSave_convert1[100];
+	count_convert +=1;
+//	sprintf(imageToSave_convert1,"../%d.jpg",count_convert);
 //	imwrite(imageToSave_convert, src_img(cars[i]));
 
+//	resizeImageCommand = "";
+	//string inpImage(imageToSave);
+
+	int count_loop = 0;
+//do{
+
+//count_loop +=1;
+//
+//	sleep(2);
+//	string resizeImageCommand1 = "convert " + imageToSave + " -resize 4000 "+ imageToSave_convert1;
+//	system(resizeImageCommand1.c_str());
+//	cout<<resizeImageCommand1<<endl;
 
 
 
-	resizeImageCommand = "";
-	string inpImage(inpImage1);
-	resizeImageCommand = "convert " + inpImage + " -resize 4000 "+ imageToSave_convert;
-	system(resizeImageCommand.c_str());
-	cout<<resizeImageCommand<<endl;
-
-	resizeImage = "";
-	resizeImage = imageToSave_convert;
+	//resizeImage = "";
+	string resizeImage1 = imageToSave;
 
 
-	Mat src_img = imread(resizeImage,0);
-if(src_img.empty())
+	//usleep(30000);
+	//Mat image(Size(4500, 2000), CV_8UC1);
+	//grayImage = image.clone();
+
+	grayImage = imread(resizeImage1,0);
+	//resizeImageCommand = " ";
+//	if(count_loop == 20)
+//		return false;
+//}while(grayImage.empty());
+//imageToSave_convert1 = "";
+
+	//imshow("Test",grayImage);
+	//waitKey(30);
+if(!grayImage.empty())
 {
-	cout << "!!! Failed imread(): image not found" << endl;
+/*	cout << "!!! Failed imread(): image not found" << endl;
 	return false;
 }
-else{
+else{*/
 	Mat gray_img;
-	cout<<"###"<<resizeImage<<endl;
-	cout<<"###"<<imageToSave_convert<<endl;
+//	cout<<"###"<<resizeImage<<endl;
+//	cout<<"###"<<imageToSave_convert1<<endl;
 
 
 
@@ -200,13 +232,14 @@ else{
 	float conf = 0;
 	float conf_avg = 0;
 	//do{
-	//if(src_img.channels()>1)
-		gray_img = src_img.clone();
-		//cvtColor(src_img,gray_img,CV_BGR2GRAY);
+/*	gray_img = grayImage.clone();
+
+		cvtColor(grayImage,gray_img,CV_BGR2GRAY);
 		//gray_img.convertTo(gray_img, CV_8U);
 	//else grayImage = src_img.clone();
 
-		grayImage = gray_img.clone();
+
+		grayImage = gray_img.clone();*/
 #ifdef SHOW_STEPS
 	imshow("gray",grayImage);
 #endif
@@ -246,8 +279,13 @@ else{
 	//threholdImage = imgThresh.clone();
 	return true;
 }
+else{
 
+  //  return false;
+    return false;
 }
+}
+
 
 
 
@@ -349,7 +387,7 @@ void ExtractSingleText::recognizeTextInImg(tesseract::TessBaseAPI* api, Mat& bin
 }
 
 
-void ExtractSingleText::cropTextWithContourPoints(tesseract::TessBaseAPI* api, float& conf , float& conf_avg, Mat& threholdImage, char* imageToSave, int& const_y1, int& const_y2, int& letter_count){
+void ExtractSingleText::cropTextWithContourPoints(tesseract::TessBaseAPI* api, float& conf , float& conf_avg, Mat& threholdImage, char imageToSave[], int& const_y1, int& const_y2, int& letter_count){
 	//float conf = 0;
 	//float conf_avg = 0;
 //	letter_count = 0;
@@ -479,7 +517,7 @@ void ExtractSingleText::drawRectOverSingleText(Mat& binaryImage, std::vector<std
 // sort
 //sort(boundRectCrop);
 
-void ExtractSingleText::cropRectOverSingleText(int& count_crop, Mat& threholdImage, Mat& binaryImage, int& count_temp, Mat& drawing, char* imageToSave_crop, std::vector<std::vector<cv::Point> > &contours, vector<Rect> &boundRectCrop){
+void ExtractSingleText::cropRectOverSingleText(int& count_crop, Mat& threholdImage, Mat& binaryImage, int& count_temp, Mat& drawing, char imageToSave_crop[], std::vector<std::vector<cv::Point> > &contours, vector<Rect> &boundRectCrop){
 
 	//Mat imgThresh = threholdImage.clone();
 	//Mat imgThreshCopy = binaryImage.clone();
