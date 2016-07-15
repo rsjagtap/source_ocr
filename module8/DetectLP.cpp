@@ -10,6 +10,10 @@
 
 
 DetectLP::DetectLP(){
+#ifdef SHOW_STEPS
+	namedWindow("Result");	//To show resulatnt image in this window.
+	namedWindow("Crop");	//To show cropped image in this window.
+#endif
 	CarCount = 0;
 }
 
@@ -43,16 +47,17 @@ void DetectLP::createFolderToSvCroppedLP(){
 
 
 
-void DetectLP::detectLPUseCascadeFile(VideoCapture& capture, CascadeClassifier& car_cascade, ExtractSingleText* extract, RecognizeLP* detect,int& CarCount){
+void DetectLP::detectLPUseCascadeFile(VideoCapture& capture, CascadeClassifier& car_cascade, ExtractSingleText* extract, RecognizeLP* detect,int& CarCount, Mat& src_img){
 
-		Mat src_img, gray_img;
+		Mat /*src_img,*/ gray_img;
 		string folderName = "../Cars_Plates/";
 
-		capture.read(src_img);
+		//capture.read(src_img);
+//		capture >> src_img;
 
 
 		vector<Rect> cars;
-		//gray_img = src_img.clone();
+		gray_img = src_img.clone();
 		cvtColor(src_img,gray_img,CV_BGR2GRAY);
 		equalizeHist(gray_img,gray_img);
 		car_cascade.detectMultiScale(gray_img, cars, 1.11, 2, 0 | CASCADE_SCALE_IMAGE, Size(0,0));
@@ -62,7 +67,7 @@ void DetectLP::detectLPUseCascadeFile(VideoCapture& capture, CascadeClassifier& 
 
 		showResultLPOnFrame(src_img);
 
-		destroyAllWindows();
+		//destroyAllWindows();
 
 		cars.clear();
 		src_img.release();
@@ -276,8 +281,9 @@ void DetectLP::showResultLPOnFrame(Mat& src_img){
 #ifdef SHOW_STEPS
 		if(!src_img.empty())
 			imshow("Result", src_img);
+		waitKey(1);
 #endif
-//		waitKey(1);
+
 }
 
 DetectLP::~DetectLP(){

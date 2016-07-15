@@ -52,7 +52,7 @@ public:
 	int loadCascade(string cascadeFile);
 	void createCapturer(VideoCapture& capture);
 	void createFolderToSvCroppedLP();
-	void detectLPUseCascadeFile(VideoCapture& capture, CascadeClassifier& car_cascade, ExtractSingleText* extract, RecognizeLP* detect,int& CarCount);
+	void detectLPUseCascadeFile(VideoCapture& capture, CascadeClassifier& car_cascade, ExtractSingleText* extract, RecognizeLP* detect,int& CarCount, Mat& src_img);
 	void saveCroppedLP(string& folderName, vector<Rect>& cars, Mat& src_img, ExtractSingleText* extract, RecognizeLP* detect,int& CarCount);
 	void showResultLPOnFrame(Mat& src_img);
 	//void* convert_image(/*void* resizeImageCommand1);
